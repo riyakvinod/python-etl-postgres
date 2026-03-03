@@ -43,7 +43,6 @@ def save_to_db(weather_data):
     df.to_sql("weather_history", engine, if_exists="append", index=False)
     print("✅ Saved to 'weather_history' table!")
 if __name__ == "__main__":
-    # Create a dictionary of city coordinates
     cities = {
         "Berlin": {"lat": 52.52, "lon": 13.41},
         "Tokyo": {"lat": 35.68, "lon": 139.69},
@@ -51,22 +50,29 @@ if __name__ == "__main__":
         "London": {"lat": 51.50, "lon": -0.12}
     }
 
-    print("Available cities: Berlin, Tokyo, New York, London")
-    choice = input("Enter city name: ").title()
+    # --- THE FIX ---
+    # Check if we are running on GitHub (GitHub Actions sets an environment variable)
+    if os.getenv("GITHUB_ACTIONS") == "true":
+        print("🤖 Running on GitHub, defaulting to Berlin.")
+        choice = "Berlin"
+    else:
+        print("🌍 Available cities: Berlin, Tokyo, New York, London")
+        choice = input("Enter city name (or press Enter for Berlin): ").title()
+        if not choice:
+            choice = "Berlin"
+    # ---------------
 
     if choice in cities:
-        # Update the URL with chosen lat/lon
         lat = cities[choice]["lat"]
         lon = cities[choice]["lon"]
         url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true"
         
-        # Now run the rest...
         try:
             response = requests.get(url)
             data = response.json()['current_weather']
-            data['city'] = choice # Add city name to the data
+            data['city'] = choice
             save_to_db(data)
         except Exception as e:
-            print(f"Error: {e}")
+            print(f"❌ Error: {e}")
     else:
-        print("City not found.")
+        print(f"❌ City '{choice}' not found.")
