@@ -5,7 +5,9 @@ import urllib.parse
 from datetime import datetime
 
 # --- 1. DATABASE CONFIGURATION ---
-DB_PASS = "Kodathethu@26"
+import os
+# It will look for a GitHub password first, otherwise use your local one
+DB_PASS = os.getenv("DB_PASS", "Kodathethu@26")
 DB_NAME = "weather_db"
 DB_USER = "postgres"
 
