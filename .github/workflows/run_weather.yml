@@ -1,44 +1,15 @@
-name: Weather API to Postgres Test
-
-on:
-  push:
-    branches: [ "main" ]
-  workflow_dispatch: # This adds a "Run" button to GitHub
-
-jobs:
-  run-weather-task:
-    runs-on: ubuntu-latest
-
-    # This creates a temporary PostgreSQL database in the cloud!
+# ... (rest of the file stays the same until the services section)
     services:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_PASSWORD: Kodathethu@26
+          POSTGRES_PASSWORD: password123 # Simple password for the Cloud DB
           POSTGRES_DB: weather_db
         ports:
           - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      - name: Install dependencies
-        run: |
-          pip install pandas sqlalchemy psycopg2-binary requests
-
+# ... (rest of the file stays the same until the Run Script step)
       - name: Run Weather Script
         env:
-          # Tell Python to use the cloud database password
-          DB_PASS: password123
+          DB_PASS: password123  # This tells Python to use 'password123' on GitHub
+          DB_HOST: localhost
         run: python weather_tracker.py

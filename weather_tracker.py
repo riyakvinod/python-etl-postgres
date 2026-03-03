@@ -1,19 +1,21 @@
 import requests
-import pandas as pd
-from sqlalchemy import create_engine
-import urllib.parse
-from datetime import datetime
-
-# --- 1. DATABASE CONFIGURATION ---
 import os
-# It will look for a GitHub password first, otherwise use your local one
-DB_PASS = os.getenv("DB_PASS", "Kodathethu@26")
-DB_NAME = "weather_db"
-DB_USER = "postgres"
+import urllib.parse
+from sqlalchemy import create_engine
 
-# This handles special characters in your password
-safe_pass = urllib.parse.quote_plus(DB_PASS)
-engine = create_engine(f"postgresql://{DB_USER}:{safe_pass}@localhost:5432/{DB_NAME}")
+# 1. Look for 'DB_PASS' from GitHub. 
+# 2. If not found, use your local 'Kodathethu@26'
+raw_password = os.getenv("DB_PASS", "Kodathethu@26")
+
+DB_USER = "postgres"
+DB_NAME = "weather_db"
+DB_HOST = os.getenv("DB_HOST", "localhost")
+
+# VERY IMPORTANT: This cleans the password (especially the @ symbol)
+safe_pass = urllib.parse.quote_plus(raw_password)
+
+# Build the connection string
+engine = create_engine(f"postgresql://{DB_USER}:{safe_pass}@{DB_HOST}:5432/{DB_NAME}")
 
 def fetch_weather():
     """Fetches live weather data for Berlin (Lat: 52.52, Lon: 13.41)"""
