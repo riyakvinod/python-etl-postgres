@@ -80,3 +80,8 @@ if __name__ == "__main__":
             print(f"❌ Error: {e}")
     else:
         print(f"❌ City '{choice}' not found.")
+# Verification: Read the data back and print it
+    print("\n📊 --- DATABASE CONTENT ---")
+    query = "SELECT * FROM weather_history"
+    df_check = pd.read_sql(query, engine)
+    print(df_check)
