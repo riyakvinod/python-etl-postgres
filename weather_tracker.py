@@ -40,10 +40,31 @@ def save_to_db(weather_data):
     # 'append' means every time you run the script, it adds a NEW row
     df.to_sql("weather_history", engine, if_exists="append", index=False)
     print("✅ Saved to 'weather_history' table!")
-if __name__== "__main__":
-    try:
-        data = fetch_weather()
-        if data:
-                save_to_db(data)
-    except Exception as e:
-        print(f"❌ Error: {e}")
+if __name__ == "__main__":
+    # Create a dictionary of city coordinates
+    cities = {
+        "Berlin": {"lat": 52.52, "lon": 13.41},
+        "Tokyo": {"lat": 35.68, "lon": 139.69},
+        "New York": {"lat": 40.71, "lon": -74.00},
+        "London": {"lat": 51.50, "lon": -0.12}
+    }
+
+    print("Available cities: Berlin, Tokyo, New York, London")
+    choice = input("Enter city name: ").title()
+
+    if choice in cities:
+        # Update the URL with chosen lat/lon
+        lat = cities[choice]["lat"]
+        lon = cities[choice]["lon"]
+        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true"
+        
+        # Now run the rest...
+        try:
+            response = requests.get(url)
+            data = response.json()['current_weather']
+            data['city'] = choice # Add city name to the data
+            save_to_db(data)
+        except Exception as e:
+            print(f"Error: {e}")
+    else:
+        print("City not found.")
