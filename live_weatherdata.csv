@@ -1,0 +1,2 @@
+time,interval,temperature,windspeed,winddirection,is_day,weathercode,city,recorded_at
+2026-03-11T06:45,900,7.9,7.6,199,1,61,Berlin,2026-03-11 06:45:44.359714
