@@ -5,25 +5,19 @@ from sqlalchemy import create_engine
 import urllib.parse
 from datetime import datetime
 
-# 1. Look for 'DB_PASS' from GitHub. 
-# 2. If not found, use your local 'Kodathethu@26'
+# 1. Database Configuration
 raw_password = os.getenv("DB_PASS", "Kodathethu@26")
-
 DB_USER = "postgres"
 DB_NAME = "weather_db"
 DB_HOST = os.getenv("DB_HOST", "localhost")
 
-# VERY IMPORTANT: This cleans the password (especially the @ symbol)
 safe_pass = urllib.parse.quote_plus(raw_password)
-
-# Build the connection string
 engine = create_engine(f"postgresql://{DB_USER}:{safe_pass}@{DB_HOST}:5432/{DB_NAME}")
 
 def fetch_weather():
-    """Fetches live weather data for Berlin (Lat: 52.52, Lon: 13.41)"""
+    """Fetches live weather data for Berlin"""
     print("☁️ Fetching live weather from API...")
     url = "https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&current_weather=true"
-
     response = requests.get(url)
 
     if response.status_code == 200:
@@ -32,20 +26,22 @@ def fetch_weather():
        return data
     else:
        print("❌ Failed to get data")
-       return none
+       return None # Fixed: Needs capital N
 
 def save_to_db(weather_data):
-    """Saves the data into our PostgreSQL database"""
-    # Create a DataFrame (Pandas table)
+    """Saves the data into our PostgreSQL database AND a CSV for GitHub"""
+    # Create a DataFrame
     df = pd.DataFrame([weather_data])
-    
-    # Add a column with the exact time we fetched the data
     df['recorded_at'] = datetime.now()
 
     print("📤 Saving to weather_db...")
-    # 'append' means every time you run the script, it adds a NEW row
     df.to_sql("weather_history", engine, if_exists="append", index=False)
     print("✅ Saved to 'weather_history' table!")
+
+    # --- THE FIX: SAVE CSV HERE INSIDE THE FUNCTION ---
+    df.to_csv("live_weatherdata.csv", index=False)
+    print("📝 Created live_weatherdata.csv for GitHub.")
+
 if __name__ == "__main__":
     cities = {
         "Berlin": {"lat": 52.52, "lon": 13.41},
@@ -54,8 +50,6 @@ if __name__ == "__main__":
         "London": {"lat": 51.50, "lon": -0.12}
     }
 
-    # --- THE FIX ---
-    # Check if we are running on GitHub (GitHub Actions sets an environment variable)
     if os.getenv("GITHUB_ACTIONS") == "true":
         print("🤖 Running on GitHub, defaulting to Berlin.")
         choice = "Berlin"
@@ -64,7 +58,6 @@ if __name__ == "__main__":
         choice = input("Enter city name (or press Enter for Berlin): ").title()
         if not choice:
             choice = "Berlin"
-    # ---------------
 
     if choice in cities:
         lat = cities[choice]["lat"]
@@ -76,12 +69,14 @@ if __name__ == "__main__":
             data = response.json()['current_weather']
             data['city'] = choice
             save_to_db(data)
+            
+            # Verification: Read back from DB
+            print("\n📊 --- DATABASE CONTENT ---")
+            query = "SELECT * FROM weather_history"
+            df_check = pd.read_sql(query, engine)
+            print(df_check.tail()) # Show only the last few rows
+
         except Exception as e:
             print(f"❌ Error: {e}")
     else:
         print(f"❌ City '{choice}' not found.")
-# Verification: Read the data back and print it
-    print("\n📊 --- DATABASE CONTENT ---")
-    query = "SELECT * FROM weather_history"
-    df_check = pd.read_sql(query, engine)
-    print(df_check)

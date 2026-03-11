@@ -41,3 +41,10 @@ jobs:
           DB_PASS: password123
           DB_HOST: localhost
         run: python weather_tracker.py
+      - name: Commit and Push the result
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add live_weatherdata.csv || echo "No file to add"
+          git commit -m "Automated weather update [skip ci]" || echo "No changes to commit"
+          git push        
